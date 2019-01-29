@@ -50,6 +50,7 @@ int main(int argc, char *argv[]) {
     lm::interpolate::InstancesConfig instances_config;
     std::vector<std::string> input_models;
     std::string tuning_file;
+    float step_size=0.7;
 
     namespace po = boost::program_options;
     po::options_description options("Log-linear interpolation options");
@@ -57,6 +58,7 @@ int main(int argc, char *argv[]) {
       ("help,h", po::bool_switch(), "Show this help message")
       ("model,m", po::value<std::vector<std::string> >(&input_models)->multitoken()->required(), "Models to interpolate, which must be in KenLM intermediate format.  The intermediate format can be generated using the --intermediate argument to lmplz.")
       ("weight,w", po::value<std::vector<float> >(&pipe_config.lambdas)->multitoken(), "Interpolation weights")
+      ("step,s", po::value<float>(&step_size), "Step size (default: 0.7)")
       ("tuning,t", po::value<std::string>(&tuning_file), "File to tune on: a text file with one sentence per line")
       ("just_tune", po::bool_switch(), "Tune and print weights then quit")
       ("temp_prefix,T", po::value<std::string>(&pipe_config.sort.temp_prefix)->default_value("/tmp/lm"), "Temporary file prefix")
@@ -93,7 +95,7 @@ int main(int argc, char *argv[]) {
       for (std::vector<std::string>::const_iterator i = input_models.begin(); i != input_models.end(); ++i) {
         model_names.push_back(*i);
       }
-      lm::interpolate::TuneWeights(util::OpenReadOrThrow(tuning_file.c_str()), model_names, instances_config, pipe_config.lambdas);
+      lm::interpolate::TuneWeights(util::OpenReadOrThrow(tuning_file.c_str()), model_names, instances_config, step_size, pipe_config.lambdas);
 
       std::cerr << "Final weights:";
       std::ostream &to = vm["just_tune"].as<bool>() ? std::cout : std::cerr;
