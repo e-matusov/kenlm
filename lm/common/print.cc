@@ -9,6 +9,9 @@
 #include <sstream>
 #include <cstring>
 
+typedef std::map<std::string, std::pair<float, float> > NGramMapWithBackoff;
+typedef std::map<std::string, float> NGramMap;
+
 namespace lm {
 
 VocabReconstitute::VocabReconstitute(int fd) {
@@ -24,11 +27,13 @@ VocabReconstitute::VocabReconstitute(int fd) {
 }
 
 namespace {
-template <class Payload> void PrintLead(const VocabReconstitute &vocab, ProxyStream<Payload> &stream, util::FileStream &out) {
-  out << stream->Value().prob << '\t' << vocab.Lookup(*stream->begin());
+template <class Payload> std::string PrintLead(const VocabReconstitute &vocab, ProxyStream<Payload> &stream, float* prob) {
+  *prob = stream->Value().prob; 
+  std::string result = vocab.Lookup(*stream->begin());
   for (const WordIndex *i = stream->begin() + 1; i != stream->end(); ++i) {
-    out << ' ' << vocab.Lookup(*i);
+    result +=  " " + std::string(vocab.Lookup(*i));
   }
+  return result;
 }
 } // namespace
 
@@ -43,17 +48,36 @@ void PrintARPA::Run(const util::stream::ChainPositions &positions) {
 
   for (unsigned order = 1; order < positions.size(); ++order) {
     out << "\\" << order << "-grams:" << '\n';
+    NGramMapWithBackoff ngramMap;
     for (ProxyStream<NGram<ProbBackoff> > stream(positions[order - 1], NGram<ProbBackoff>(NULL, order)); stream; ++stream) {
-      PrintLead(vocab, stream, out);
-      out << '\t' << stream->Value().backoff << '\n';
+      float prob=0;
+      std::string ngram = PrintLead(vocab, stream, &prob);
+      if(sort_ngrams_)
+        ngramMap[ngram] = std::make_pair(prob, stream->Value().backoff);
+      else
+        out << prob << '\t' << ngram << '\t' << stream->Value().backoff << '\n';
+    }
+    if (sort_ngrams_) {
+      for (NGramMapWithBackoff::const_iterator n=ngramMap.begin(); n!=ngramMap.end(); ++n)
+        out << n->second.first << '\t' << n->first << '\t' << n->second.second << '\n';
+      ngramMap.clear();
     }
     out << '\n';
   }
 
   out << "\\" << positions.size() << "-grams:" << '\n';
+  NGramMap ngramMap;
   for (ProxyStream<NGram<Prob> > stream(positions.back(), NGram<Prob>(NULL, positions.size())); stream; ++stream) {
-    PrintLead(vocab, stream, out);
-    out << '\n';
+    float prob=0;
+    std::string ngram = PrintLead(vocab, stream, &prob);
+    if (sort_ngrams_)
+      ngramMap[ngram] = prob;
+    else
+      out << prob << '\t' << ngram << '\n';
+  }
+  if (sort_ngrams_) {
+    for (NGramMap::const_iterator n=ngramMap.begin(); n!=ngramMap.end(); ++n) 
+      out << n->second << '\t' << n->first << '\n';
   }
   out << '\n';
   out << "\\end\\\n";

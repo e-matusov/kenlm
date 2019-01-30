@@ -80,6 +80,7 @@ int main(int argc, char *argv[]) {
     discount_fallback_default.push_back("1");
     discount_fallback_default.push_back("1.5");
     bool verbose_header;
+    bool sort_ngrams=false;
 
     options.add_options()
       ("help,h", po::bool_switch(), "Show this help message")
@@ -98,6 +99,7 @@ int main(int argc, char *argv[]) {
       ("vocab_estimate", po::value<lm::WordIndex>(&pipeline.vocab_estimate)->default_value(1000000), "Assume this vocabulary size for purposes of calculating memory in step 1 (corpus count) and pre-sizing the hash table")
       ("vocab_pad", po::value<uint64_t>(&pipeline.vocab_size_for_unk)->default_value(0), "If the vocabulary is smaller than this value, pad with <unk> to reach this size. Requires --interpolate_unigrams")
       ("verbose_header", po::bool_switch(&verbose_header), "Add a verbose header to the ARPA file that includes information such as token count, smoothing type, etc.")
+      ("sort_ngrams", po::bool_switch(&sort_ngrams), "Sort n-grams alphabetically in the output ARPA file.")
       ("text", po::value<std::string>(&text), "Read text from a file instead of stdin")
       ("arpa", po::value<std::string>(&arpa), "Write ARPA to a file instead of stdout")
       ("intermediate", po::value<std::string>(&intermediate), "Write ngrams to intermediate files.  Turns off ARPA output (which can be reactivated by --arpa file).  Forces --renumber on.")
@@ -204,7 +206,7 @@ int main(int argc, char *argv[]) {
       }
       lm::builder::Output output(writing_intermediate ? intermediate : pipeline.sort.temp_prefix, writing_intermediate, pipeline.output_q);
       if (!writing_intermediate || vm.count("arpa")) {
-        output.Add(new lm::builder::PrintHook(out.release(), verbose_header));
+        output.Add(new lm::builder::PrintHook(out.release(), verbose_header, sort_ngrams));
       }
       lm::builder::Pipeline(pipeline, in.release(), output);
     } catch (const util::MallocException &e) {

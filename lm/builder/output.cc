@@ -46,7 +46,7 @@ void PrintHook::Sink(const HeaderInfo &info, int vocab_file, util::stream::Chain
     out << "# Token count: " << info.token_count << '\n';
     out << "# Smoothing: Modified Kneser-Ney" << '\n';
   }
-  chains >> PrintARPA(vocab_file, file_.get(), info.counts_pruned);
+  chains >> PrintARPA(vocab_file, file_.get(), info.counts_pruned, sort_ngrams_);
 }
 
 }} // namespaces

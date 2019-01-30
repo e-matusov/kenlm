@@ -51,6 +51,7 @@ int main(int argc, char *argv[]) {
     std::vector<std::string> input_models;
     std::string tuning_file;
     float step_size=0.7;
+    bool sort_ngrams=false;
 
     namespace po = boost::program_options;
     po::options_description options("Log-linear interpolation options");
@@ -62,6 +63,7 @@ int main(int argc, char *argv[]) {
       ("tuning,t", po::value<std::string>(&tuning_file), "File to tune on: a text file with one sentence per line")
       ("just_tune", po::bool_switch(), "Tune and print weights then quit")
       ("temp_prefix,T", po::value<std::string>(&pipe_config.sort.temp_prefix)->default_value("/tmp/lm"), "Temporary file prefix")
+      ("sort_ngrams", po::bool_switch(&sort_ngrams), "Sort n-grams alphabetically in the output ARPA file.")
       ("memory,S", lm::SizeOption(pipe_config.sort.total_memory, util::GuessPhysicalMemory() ? "50%" : "1G"), "Sorting memory: this is a very rough guide")
       ("sort_block", lm::SizeOption(pipe_config.sort.buffer_size, "64M"), "Block size");
     po::variables_map vm;
@@ -117,7 +119,7 @@ int main(int argc, char *argv[]) {
     for (std::size_t i = 0; i < input_models.size(); ++i) {
       models.push_back(input_models[i]);
     }
-    lm::interpolate::Pipeline(models, pipe_config, 1);
+    lm::interpolate::Pipeline(models, pipe_config, 1, sort_ngrams);
   } catch (const std::exception &e) {
     std::cerr << e.what() <<std::endl;
     return 1;

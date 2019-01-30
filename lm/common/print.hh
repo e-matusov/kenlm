@@ -43,8 +43,8 @@ class VocabReconstitute {
 class PrintARPA {
   public:
     // Does not take ownership of vocab_fd or out_fd.
-    explicit PrintARPA(int vocab_fd, int out_fd, const std::vector<uint64_t> &counts)
-      : vocab_fd_(vocab_fd), out_fd_(out_fd), counts_(counts) {}
+    explicit PrintARPA(int vocab_fd, int out_fd, const std::vector<uint64_t> &counts, bool sort_ngrams=false)
+      : vocab_fd_(vocab_fd), out_fd_(out_fd), counts_(counts), sort_ngrams_(sort_ngrams) {}
 
     void Run(const util::stream::ChainPositions &positions);
 
@@ -52,6 +52,7 @@ class PrintARPA {
     int vocab_fd_;
     int out_fd_;
     std::vector<uint64_t> counts_;
+    bool sort_ngrams_;
 };
 
 } // namespace lm

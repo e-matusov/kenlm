@@ -61,7 +61,7 @@ template <class Compare> void SourceSort(util::stream::Chains &chains, util::str
 
 } // namespace
 
-void Pipeline(util::FixedArray<ModelBuffer> &models, const Config &config, int write_file) {
+void Pipeline(util::FixedArray<ModelBuffer> &models, const Config &config, int write_file, bool sort_ngrams) {
   // Setup InterpolateInfo and UniversalVocab.
   InterpolateInfo info;
   info.lambdas = config.lambdas;
@@ -181,7 +181,7 @@ void Pipeline(util::FixedArray<ModelBuffer> &models, const Config &config, int w
   combined >> util::stream::kRecycle;
 
   // TODO genericize to ModelBuffer etc.
-  PrintARPA(vocab_null.get(), write_file, counts).Run(output_pos);
+  PrintARPA(vocab_null.get(), write_file, counts, sort_ngrams).Run(output_pos);
 }
 
 }} // namespaces

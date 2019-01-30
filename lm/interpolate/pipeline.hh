@@ -16,7 +16,7 @@ struct Config {
   std::size_t BufferSize() const { return sort.buffer_size; }
 };
 
-void Pipeline(util::FixedArray<ModelBuffer> &models, const Config &config, int write_file);
+void Pipeline(util::FixedArray<ModelBuffer> &models, const Config &config, int write_file, bool sort_ngrams=false);
 
 }} // namespaces
 #endif // LM_INTERPOLATE_PIPELINE_H

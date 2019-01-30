@@ -70,14 +70,15 @@ class Output : boost::noncopyable {
 class PrintHook : public OutputHook {
   public:
     // Takes ownership
-    PrintHook(int write_fd, bool verbose_header)
-      : OutputHook(PROB_SEQUENTIAL_HOOK), file_(write_fd), verbose_header_(verbose_header) {}
+    PrintHook(int write_fd, bool verbose_header, bool sort_ngrams=false)
+      : OutputHook(PROB_SEQUENTIAL_HOOK), file_(write_fd), verbose_header_(verbose_header), sort_ngrams_(sort_ngrams) {}
 
     void Sink(const HeaderInfo &info, int vocab_file, util::stream::Chains &chains);
 
   private:
     util::scoped_fd file_;
     bool verbose_header_;
+    bool sort_ngrams_;
 };
 
 }} // namespaces
